@@ -1,0 +1,57 @@
+{
+  "name": "mobile-ai-qa-boilerplate",
+  "version": "1.0.0",
+  "description": "Agentic mobile E2E boilerplate — WebdriverIO + Appium, driven by an AI loop: build → run → explore → report → decide.",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "postinstall": "patch-package",
+    "setup": "node -e \"console.log('Put your .apk / .app in apps/, then point config/app.ts at it. See docs/guides/building-the-app.md.')\"",
+    "typecheck": "tsc --noEmit",
+
+    "wdio": "node scripts/device-lock.mjs run --owner \"wdio\" -- wdio run ./wdio.conf.ts",
+    "wdio:ios": "PLATFORM=ios node scripts/device-lock.mjs run --owner \"wdio ios\" -- wdio run ./wdio.conf.ts",
+    "wdio:android": "npm run android:boot && PLATFORM=android node scripts/device-lock.mjs run --owner \"wdio android\" -- wdio run ./wdio.conf.ts",
+    "wdio:ios:debug": "PLATFORM=ios node scripts/device-lock.mjs run --owner \"wdio ios debug\" -- wdio run ./wdio.conf.ts --mochaOpts.grep=@debug",
+    "wdio:android:debug": "npm run android:boot && PLATFORM=android node scripts/device-lock.mjs run --owner \"wdio android debug\" -- wdio run ./wdio.conf.ts --mochaOpts.grep=@debug",
+    "wdio:ios:isolated": "PLATFORM=ios ISOLATED=true node scripts/device-lock.mjs run --owner \"wdio ios isolated\" -- wdio run ./wdio.conf.ts",
+    "wdio:android:isolated": "npm run android:boot && PLATFORM=android ISOLATED=true node scripts/device-lock.mjs run --owner \"wdio android isolated\" -- wdio run ./wdio.conf.ts",
+
+    "android:boot": "node scripts/android-emulator.mjs boot",
+    "android:avd": "node scripts/android-emulator.mjs create",
+    "android:kill": "node scripts/android-emulator.mjs kill",
+    "android:status": "node scripts/android-emulator.mjs status",
+    "ios:boot": "xcrun simctl bootstatus \"${IOS_DEVICE_NAME:-iPhone 16e}\" -b",
+
+    "device:status": "node scripts/device-lock.mjs status",
+    "device:release": "node scripts/device-lock.mjs release --force",
+
+    "explore:ios": "PLATFORM=ios node scripts/device-lock.mjs run --owner \"explore ios\" -- wdio run ./wdio.explore.conf.ts",
+    "explore:android": "npm run android:boot && PLATFORM=android node scripts/device-lock.mjs run --owner \"explore android\" -- wdio run ./wdio.explore.conf.ts",
+    "explore:index": "node scripts/findings-index.mjs",
+
+    "report": "node scripts/report.mjs",
+    "config:diff": "node scripts/config-diff.cjs",
+    "capture:tree": "node scripts/tree-from-capture.mjs"
+  },
+  "keywords": ["appium", "webdriverio", "e2e", "mobile", "react-native", "ai", "agentic", "boilerplate"],
+  "devDependencies": {
+    "@types/node": "^25.4.0",
+    "@wdio/appium-service": "^9.24.0",
+    "@wdio/cli": "^9.24.0",
+    "@wdio/globals": "^9.23.0",
+    "@wdio/junit-reporter": "^9.29.1",
+    "@wdio/local-runner": "^9.24.0",
+    "@wdio/mocha-framework": "^9.24.0",
+    "@wdio/spec-reporter": "^9.24.0",
+    "@wdio/types": "^9.24.0",
+    "appium": "^3.2.2",
+    "appium-uiautomator2-driver": "^8.1.0",
+    "appium-xcuitest-driver": "^10.26.0",
+    "dotenv": "^17.4.2",
+    "expect-webdriverio": "^5.6.4",
+    "patch-package": "^8.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
