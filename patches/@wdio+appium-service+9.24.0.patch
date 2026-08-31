@@ -1,0 +1,55 @@
+diff --git a/node_modules/@wdio/appium-service/build/index.js b/node_modules/@wdio/appium-service/build/index.js
+index 12b8086..e870155 100644
+--- a/node_modules/@wdio/appium-service/build/index.js
++++ b/node_modules/@wdio/appium-service/build/index.js
+@@ -2222,23 +2222,36 @@ var AppiumLauncher = class _AppiumLauncher {
+           reject(err);
+         }
+       };
++      let errBuffer = "";
+       const onErrorMessage = (data) => {
+-        const message = data.toString();
+-        const isDebuggerMessage = message.includes("Debugger attached") || message.includes("Debugger listening on") || message.includes("For help, see: https://nodejs.org/en/docs/inspector");
+-        if (isDebuggerMessage) {
++        errBuffer += data.toString();
++        const lines = errBuffer.split("\n");
++        errBuffer = lines.pop() ?? "";
++        for (const message of lines) {
++          if (!message.trim()) {
++            continue;
++          }
++          const isDebuggerMessage = message.includes("Debugger attached") || message.includes("Debugger listening on") || message.includes("For help, see: https://nodejs.org/en/docs/inspector");
++          if (isDebuggerMessage) {
++            continue;
++          }
++          const isBenignAppiumLog = /^\s*(dbug|info|verb|sill)\b/.test(message);
++          if (isBenignAppiumLog) {
++            continue;
++          }
++          appiumProcess.stderr.off("data", onErrorMessage);
++          error = message || "Appium exited without unknown error message";
++          const isWarning = message.trim().startsWith("WARN");
++          if (isWarning) {
++            log9.warn(error);
++          } else {
++            log9.error(error);
++          }
++          if (!isWarning) {
++            rejectOnce(new Error(error));
++          }
+           return;
+         }
+-        appiumProcess.stderr.off("data", onErrorMessage);
+-        error = message || "Appium exited without unknown error message";
+-        const isWarning = message.trim().startsWith("WARN");
+-        if (isWarning) {
+-          log9.warn(error);
+-        } else {
+-          log9.error(error);
+-        }
+-        if (!isWarning) {
+-          rejectOnce(new Error(error));
+-        }
+       };
+       const onStdout = (data) => {
+         outputBuffer += data.toString();
