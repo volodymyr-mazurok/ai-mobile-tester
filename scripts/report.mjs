@@ -203,7 +203,20 @@ function render({ platform, tests, issues, cov, generatedAt }) {
  td.t{color:var(--ink);font-weight:500}
  .v{font-family:var(--mono);font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
  .v.pass{background:#E2F1E9;color:var(--pass)} .v.fail{background:#FBEAE6;color:var(--fail)}
- .n{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+ /* A numeric column is sized by its own content, not by an equal share of the
+    table: width:1% plus nowrap collapses it to the wider of its header and its
+    digits, and the first text column absorbs all the slack. Without this the
+    four columns split the full width evenly and a header sits ~150px from the
+    number underneath it. */
+ .n{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;
+   white-space:nowrap;width:1%}
+ /* ⚠️ THE HEADER MUST SHARE THE CELL'S ALIGNMENT, or the column name and its
+    value hang off opposite edges. A th defaults to left for text columns; a
+    numeric one overrides it here, and the two share the same 18px padding so
+    the digits line up under the last letter of the label. */
+ th.n{text-align:right}
+ /* An id is a label, not a quantity: monospaced like a number, aligned like text. */
+ .id{font-family:var(--mono);white-space:nowrap;width:1%}
  .fail-card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--fail);
    border-radius:12px;padding:22px 24px;margin:16px 0;display:grid;grid-template-columns:180px 1fr;gap:26px;align-items:start}
  .fail-card img{width:100%;border-radius:8px;border:1px solid var(--line);display:block}
@@ -260,7 +273,7 @@ ${
 }
 
 <h2>За наборами</h2>
-<table><thead><tr><th>Набір</th><th>Перевірок</th><th>Пройшло</th><th>Не пройшло</th></tr></thead><tbody>
+<table><thead><tr><th>Набір</th><th class="n">Перевірок</th><th class="n">Пройшло</th><th class="n">Не пройшло</th></tr></thead><tbody>
 ${[...bySuite.entries()]
   .map(([suite, ts]) => {
     const f = ts.filter((t) => !t.passed).length;
@@ -273,7 +286,7 @@ ${[...bySuite.entries()]
 
 ${
   flaky.length
-    ? `<h2>Нестабільні</h2><table><thead><tr><th>Перевірка</th><th>Спроб</th></tr></thead><tbody>
+    ? `<h2>Нестабільні</h2><table><thead><tr><th>Перевірка</th><th class="n">Спроб</th></tr></thead><tbody>
 ${flaky.map((t) => `<tr><td class="t">${esc(t.title)}</td><td class="n">${t.attempts}</td></tr>`).join("\n")}
 </tbody></table>
 <p style="font-size:13px;color:var(--muted);margin-top:12px">Ці перевірки дали різний результат у двох спробах. Показано вердикт ПЕРШОЇ: повтор файлу специфікації створює падіння, яких не було.</p>`
@@ -284,7 +297,7 @@ ${flaky.map((t) => `<tr><td class="t">${esc(t.title)}</td><td class="n">${t.atte
 ${
   issues.length
     ? `<table><thead><tr><th>ID</th><th>Дефект</th></tr></thead><tbody>
-${issues.map((i) => `<tr><td class="n" style="text-align:left"><code>${esc(i.id)}</code></td><td class="t">${esc(i.summary)}</td></tr>`).join("\n")}
+${issues.map((i) => `<tr><td class="id"><code>${esc(i.id)}</code></td><td class="t">${esc(i.summary)}</td></tr>`).join("\n")}
 </tbody></table>
 <p style="font-size:13px;color:var(--muted);margin-top:12px">Кожен відтворено вручну перед записом.</p>`
     : `<div class="empty">Жодного підтвердженого дефекту не записано.</div>`
@@ -292,7 +305,7 @@ ${issues.map((i) => `<tr><td class="n" style="text-align:left"><code>${esc(i.id)
 
 ${
   cov.length
-    ? `<h2>Покриття</h2><table><thead><tr><th>Екран</th><th>Тестів</th><th>Перевіряє</th><th>Не перевіряє</th></tr></thead><tbody>
+    ? `<h2>Покриття</h2><table><thead><tr><th>Екран</th><th class="n">Тестів</th><th class="n">Перевіряє</th><th class="n">Не перевіряє</th></tr></thead><tbody>
 ${cov.map((c) => `<tr><td class="t">${esc(c.screen)}</td><td class="n">${c.tests}</td><td class="n">${c.covers}</td><td class="n">${c.gaps}</td></tr>`).join("\n")}
 </tbody></table>
 <p style="font-size:13px;color:var(--muted);margin-top:12px">Колонка «не перевіряє» — цілі для наступної дослідницької сесії.</p>`
